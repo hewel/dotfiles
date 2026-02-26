@@ -10,6 +10,7 @@ A modern Wayland-focused configuration with the following components:
 - **Anyrun** - Wayland-native application launcher
 - **Ghostty** - Modern GPU-accelerated terminal emulator
 - **Spotify Launcher** - Spotify with Wayland support
+- **Paru** - AUR helper configuration
 - **Custom theming** via DMS (Dynamic Module System)
 
 ## Prerequisites
@@ -76,6 +77,7 @@ chezmoi apply
 
 - **Spotify Launcher**: Enabled with Wayland Ozone platform and IME support
 - **Fontconfig**: Local font configuration
+- **Paru**: AUR helper with SkipReview enabled
 - **Environment**: Sets `ELECTRON_OZONE_PLATFORM_HINT=auto` and `TERMINAL=ghostty`
 
 ## Structure
@@ -92,6 +94,8 @@ dot_config/
 │   ├── config.kdl             # Main Niri config (includes other files)
 │   ├── cfg/                   # Core configuration modules
 │   └── dms/                   # Dynamic module system configs
+├── paru/
+│   └── paru.conf              # AUR helper configuration
 └── spotify-launcher.conf      # Spotify Wayland settings
 ```
 

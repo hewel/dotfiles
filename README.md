@@ -9,6 +9,7 @@ A modern Wayland-focused configuration with the following components:
 - **Niri** - Scrollable-tiling Wayland compositor
 - **Anyrun** - Wayland-native application launcher
 - **Ghostty** - Modern GPU-accelerated terminal emulator
+- **Helix** - Modal text editor with tree-sitter support
 - **Spotify Launcher** - Spotify with Wayland support
 - **Paru** - AUR helper configuration
 - **Custom theming** via DMS (Dynamic Module System)
@@ -73,6 +74,12 @@ chezmoi apply
 - Keybindings for font size adjustment
 - See `dot_config/ghostty/config` for full configuration
 
+### Helix (Editor)
+
+- Modal text editor with tree-sitter syntax highlighting
+- Custom "onedark_transparent" theme
+- See `dot_config/helix/config.toml` for configuration
+
 ### Other Configurations
 
 - **Spotify Launcher**: Enabled with Wayland Ozone platform and IME support
@@ -90,13 +97,11 @@ dot_config/
 ├── ghostty/
 │   ├── config                 # Main Ghostty config
 │   └── themes/dankcolors      # Custom theme
+├── helix/
+│   ├── config.toml            # Main Helix config
+│   └── themes/                # Custom themes
+│       └── onedark_transparent.toml
 ├── niri/
-│   ├── config.kdl             # Main Niri config (includes other files)
-│   ├── cfg/                   # Core configuration modules
-│   └── dms/                   # Dynamic module system configs
-├── paru/
-│   └── paru.conf              # AUR helper configuration
-└── spotify-launcher.conf      # Spotify Wayland settings
 ```
 
 ## Customization

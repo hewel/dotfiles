@@ -5,4 +5,4 @@ format = '[╰─](blue)[$symbol]($style) '
 success_symbol = '[|>](green)'
 error_symbol = '[|>](red)'
 [directory]
-format = '[╭─\[$path\]]($style)[$read_only]($read_only_style) '
+format = '[╭─](blue)[\[$path\]]($style)[$read_only]($read_only_style) '

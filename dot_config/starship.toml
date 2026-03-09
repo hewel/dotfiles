@@ -1,8 +1,8 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 [character]
-format = '[└](blue)[$symbol]($style) '
+format = '[╰─](blue)[$symbol]($style) '
 success_symbol = '[|>](green)'
 error_symbol = '[|>](red)'
 [directory]
-format = '[┌](blue)[\[$path\]]($style)[$read_only]($read_only_style) '
+format = '[╭─\[](blue)[$path]($style)[\]](blue)[$read_only]($read_only_style) '

@@ -1,0 +1,11 @@
+#
+# ~/.bash_profile
+#
+
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
+. "$HOME/.local/bin/env"
+
+export XDG_DATA_DIRS="$HOME/.local/share:/usr/share:$XDG_DATA_DIRS"

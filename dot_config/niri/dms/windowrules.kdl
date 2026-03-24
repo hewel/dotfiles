@@ -36,3 +36,21 @@ window-rule {
     match app-id="^libreoffice-calc$"
     open-maximized true
 }
+
+// @id=wr_1773058846110239321 @name=code
+window-rule {
+    match app-id="^code$"
+    open-maximized true
+}
+
+// @id=wr_1773228707738722507 @name=mpv
+window-rule {
+    match app-id="^mpv$"
+    open-floating true
+}
+
+// @id=wr_1774322444211063968 @name=dev.zed.Zed
+window-rule {
+    match app-id="^dev.zed.Zed$"
+    open-maximized true
+}

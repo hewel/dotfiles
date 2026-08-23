@@ -1,8 +1,19 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
+# $directory first so SSH user/host cannot precede the box.
+format = '$directory$all'
+
 [character]
 format = '[╰─](blue)[$symbol]($style) '
 success_symbol = '[|>](green)'
 error_symbol = '[|>](red)'
+
 [directory]
 format = '[╭─\[](blue)[$path]($style)[\]](blue)[$read_only]($read_only_style) '
+
+[username]
+format = '[$user]($style)'
+
+[hostname]
+ssh_only = true
+format = '[@$hostname]($style) '

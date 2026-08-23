@@ -1,27 +1,26 @@
 # Font Configuration
 font-size = 12
-font-family = Iosevka Term SS15 Extended
+font-family = Lilex
 
 # Window Configuration
-window-inherit-working-directory = true
-window-decoration = false
+window-inherit-working-directory = false
+gtk-titlebar = true
+gtk-titlebar-style = tabs
 window-padding-x = 12
 window-padding-y = 12
-background-opacity = 1.0
+background-opacity = 0.875
 background-blur-radius = 32
 
 # Cursor Configuration
 cursor-style = block
 cursor-style-blink = true
 
-# Scrollback
-scrollback-limit = 3023
-
 # Terminal features
 mouse-hide-while-typing = true
-copy-on-select = false
+copy-on-select = true
 confirm-close-surface = false
 working-directory = home
+split-inherit-working-directory = false
 
 # Disable annoying copied to clipboard
 app-notifications = no-clipboard-copy,no-config-reload
@@ -40,15 +39,13 @@ unfocused-split-opacity = 0.7
 unfocused-split-fill = #44464f
 
 # Tab configuration
-gtk-titlebar = false
+# gtk-titlebar = false
 
 # Shell integration
-shell-integration = detect
-shell-integration-features = cursor,sudo,title,no-cursor
 keybind = shift+enter=text:\n
 
 # Rando stuff
 gtk-single-instance = true
 
-# Dank color generation
-theme = dankcolors
+# Official Catppuccin Frappé (bundled with Ghostty)
+theme = Catppuccin Frappe

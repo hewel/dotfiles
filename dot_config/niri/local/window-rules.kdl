@@ -1,55 +1,46 @@
-// DMS Window Rules - Managed by DankMaterialShell
-// Do not edit manually - changes may be overwritten
+// Per-app window rules previously stored by DankMaterialShell.
+// Copied as-is so they remain user-owned and do not depend on DMS.
 
-// @id=wr_1771848804193350293 @name=zen
 window-rule {
     match app-id="^zen$"
     open-maximized true
 }
 
-// @id=wr_1771850965543984867 @name=helium
 window-rule {
     match app-id="^helium$"
     open-maximized true
 }
 
-// @id=wr_1771903289762657426 @name=org.gnome.NautilusPreviewer
 window-rule {
     match app-id="^org.gnome.NautilusPreviewer$"
     open-floating true
 }
 
-// @id=wr_1771909894150475983 @name=antigravity
 window-rule {
     match app-id="^antigravity$"
     open-maximized true
 }
 
-// @id=wr_1771910289265713744 @name=XEyes
 window-rule {
     match app-id="^XEyes$"
     open-floating true
 }
 
-// @id=wr_1771926037057216903 @name=libreoffice-calc
 window-rule {
     match app-id="^libreoffice-calc$"
     open-maximized true
 }
 
-// @id=wr_1773058846110239321 @name=code
 window-rule {
     match app-id="^code$"
     open-maximized true
 }
 
-// @id=wr_1773228707738722507 @name=mpv
 window-rule {
     match app-id="^mpv$"
     open-floating true
 }
 
-// @id=wr_1774322444211063968 @name=dev.zed.Zed
 window-rule {
     match app-id="^dev.zed.Zed$"
     open-maximized true
@@ -58,65 +49,54 @@ window-rule {
     }
 }
 
-// @id=wr_1777384999092505731 @name=steam
 window-rule {
     match app-id="^steam$"
     open-maximized true
 }
 
-// @id=wr_1778424235559462993 @name=Google-chrome
 window-rule {
     match app-id="^Google-chrome$"
     open-maximized true
 }
 
-// @id=wr_1778471708571201042 @name=gitkraken
 window-rule {
     match app-id="^gitkraken$"
     open-maximized true
 }
 
-// @id=wr_1778732947068480996 @name=google-chrome
 window-rule {
     match app-id="^google-chrome$"
     open-maximized true
 }
 
-// @id=dms_rule_13 @name=^Alacritty$
 window-rule {
     match app-id="^Alacritty$"
 }
 
-// @id=dms_rule_14 @name=
 window-rule {
     match app-id="^com.mitchellh.ghostty$"
 }
 
-// @id=wr_1780552587736533455 @name=Aseprite
 window-rule {
     match app-id="^Aseprite$"
     open-maximized true
 }
 
-// @id=wr_1782664634894033361 @name=com.gabm.satty
 window-rule {
     match app-id="^com.gabm.satty$"
     open-floating true
 }
 
-// @id=wr_1783082485913640770 @name=steam_app_3596700
 window-rule {
     match app-id="^steam_app_3596700$"
     open-fullscreen true
 }
 
-// @id=wr_1783699136882505106 @name=Steam Games
 window-rule {
     match app-id="^steam_app_\\d+$"
     open-fullscreen true
 }
 
-// @id=wr_1786640639421646218 @name=nwg-look
 window-rule {
     match app-id="^nwg-look$"
     background-effect {
@@ -124,7 +104,6 @@ window-rule {
     }
 }
 
-// @id=wr_1786640738821044577 @name=moe.tsuna.tsukimi
 window-rule {
     match app-id="^moe.tsuna.tsukimi$"
     background-effect {
@@ -132,10 +111,25 @@ window-rule {
     }
 }
 
-// @id=wr_1786989082952793341 @name=app.liten.Gram
 window-rule {
     match app-id="^app.liten.Gram$"
     background-effect {
         blur true
     }
+}
+
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+    border {
+        off
+    }
+
+    focus-ring {
+        off
+    }
+
+
 }

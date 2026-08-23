@@ -6,12 +6,42 @@ include "./cfg/input.kdl"
 include "./cfg/rules.kdl"
 // include "./cfg/misc.kdl"
 
-include "dms/alttab.kdl"
-include "dms/windowrules.kdl"
-include "dms/binds.kdl"
-include "dms/layout.kdl"
-include "dms/colors.kdl"
-include "dms/cursor.kdl"
-include "dms/wpblur.kdl"
+include "local/alttab.kdl"
+include "local/window-rules.kdl"
+include "local/binds.kdl"
+include "local/layout.kdl"
+include "local/outputs.kdl"
 
-include "dms/outputs.kdl"
+environment {
+    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORMTHEME "qt6ct"
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+blur {
+    passes 4
+    offset 6
+}
+
+debug {
+    // Allows notification actions and window activation from Noctalia.
+    honor-xdg-activation-with-invalid-serial
+}
+
+window-rule {
+    match app-id="^com.mitchellh.ghostty$"
+    match app-id="^Alacritty$"
+    match app-id="^foot$"
+    match app-id="^org.gnome.Console$"
+    default-column-width { fixed 1505; }
+    background-effect {
+        blur true
+    }
+}
+
+binds {
+    Print { spawn-sh "grim -t ppm -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --actions-on-enter \"save-to-clipboard,exit\" --actions-on-escape \"exit\""; }
+}

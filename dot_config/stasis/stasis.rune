@@ -1,0 +1,93 @@
+@author "hewel"
+@description "niri + Noctalia idle plan"
+
+# Sequential desktop plan:
+#   idle 5m -> lock
+#   +1m    -> monitors off
+#   +30m   -> suspend
+lock_after       300
+screen_off_after 60
+suspend_after    1800
+
+default:
+  enable_loginctl_integration true
+  enable_dbus_inhibit true
+  pre_suspend_command None
+  monitor_media true
+  ignore_remote_media true
+  suspend_inhibit_media ["spotify" "mpd"]
+  debounce_seconds 5
+
+  notify_on_unpause true
+  notify_before_action true
+  notification_icon "stasis"
+
+  # Desktop chassis: no lid actions.
+  lid_close_action ""
+  lid_open_action ""
+
+  # Full idle inhibit while these windows exist (niri app_id).
+  # Browser video/presentation inhibit is handled via D-Bus/portals.
+  inhibit_apps [
+    "mpv"
+    "vlc"
+    "org.videolan.VLC"
+    r"steam_app_.*"
+  ]
+
+  # Allow lock + DPMS, but do not auto-suspend.
+  suspend_inhibit_apps [
+    "handbrake"
+    "fr.handbrake.ghb"
+  ]
+
+  lock_screen:
+    timeout lock_after
+    command "/usr/bin/noctalia msg session lock"
+    notification "Locking session soon"
+    notify_seconds_before 10
+  end
+
+  dpms:
+    timeout screen_off_after
+    command "/usr/bin/niri msg action power-off-monitors"
+  end
+
+  suspend:
+    timeout suspend_after
+    command "/usr/bin/systemctl suspend"
+  end
+end
+
+# Extra game matching if a non-Steam/native title is not covered by steam_app_*.
+# Steam games already inhibit on the default profile.
+gaming:
+  mode "overlay"
+
+  inhibit_apps [
+    "mpv"
+    "vlc"
+    "org.videolan.VLC"
+    r"steam_app_.*"
+    r".*\.exe"
+    r".*\.x86_64"
+  ]
+end
+
+# Manual profile: keep the display on, no lock/DPMS/suspend.
+presentation:
+  mode "fresh"
+
+  enable_dbus_inhibit true
+  enable_loginctl_integration true
+  pre_suspend_command None
+  monitor_media false
+  ignore_remote_media true
+  debounce_seconds 0
+  notify_on_unpause false
+  notify_before_action false
+  inhibit_apps [ ]
+  suspend_inhibit_apps [ ]
+  lid_close_action ""
+  lid_open_action ""
+end

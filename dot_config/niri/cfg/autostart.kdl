@@ -2,5 +2,8 @@
 // https://github.com/YaLTeR/niri/wiki/Configuration:-Miscellaneous#spawn-sh-at-startup
     spawn-at-startup "dbus-update-activation-environment" "--systemd" "WAYLAND_DISPLAY" "XDG_CURRENT_DESKTOP" "XDG_DATA_DIRS"
     spawn-sh-at-startup "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &"
-    spawn-at-startup "flameshot"
+    spawn-at-startup "noctalia"
+    // spawn-at-startup "flameshot"
+    spawn-at-startup "~/.config/niri/scripts/dynamic-float"
+    spawn-at-startup "~/.config/niri/scripts/auto-close-chrome-notifs"
     // spawn-sh-at-startup "/usr/bin/delta-shell run"

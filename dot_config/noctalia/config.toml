@@ -1,0 +1,212 @@
+# Minimal Noctalia v5 config for the DMS -> niri migration.
+# GUI overrides live in ~/.local/state/noctalia/settings.toml and take precedence.
+
+[shell]
+telemetry_enabled = false
+settings_show_advanced = true
+# polkit-gnome is already started from niri autostart. Do not run two agents.
+polkit_agent = false
+
+[theme]
+source = "custom"
+custom_palette = "Colloid"
+mode = "auto"
+
+    [shell.screen_corners]
+    enabled = true
+    # Concentric with niri: window radius 12 + gaps 4.
+    size = 16
+
+[notification]
+enable_daemon = true
+
+[lockscreen]
+enabled = true
+lock_before_suspend = true
+blurred_desktop = false
+blur_intensity = 0.58
+tint_intensity = 0.18
+
+[wallpaper]
+enabled = true
+directory = "/home/hewel/Pictures/Wallpaper"
+
+    [wallpaper.default]
+    path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
+
+[idle]
+# Stasis owns idle timing, DPMS, lock, and suspend.
+# Keep Noctalia lockscreen/session actions; disable idle behaviors.
+behavior_order = ["screen-off", "lock", "lock-and-suspend"]
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = false
+    timeout = 0.0
+
+    [idle.behavior.lock]
+    action = "lock"
+    enabled = false
+    timeout = 0.0
+
+    [idle.behavior.lock-and-suspend]
+    action = "lock_and_suspend"
+    enabled = false
+    timeout = 0.0
+
+[bar.default]
+enabled = true
+position = "left"
+# Concentric with niri: window radius 12 + gaps 4.
+radius_top_left = 0
+radius_bottom_left = 0
+radius_top_right = 16
+radius_bottom_right = 16
+start = ["launcher", "workspaces", "active_window"]
+center = ["media", "clock", "stasis"]
+end = [
+    "tray",
+    "clipboard",
+    "network",
+    "bluetooth",
+    "volume",
+    "notifications",
+    "battery",
+    "control-center",
+    "session",
+]
+
+[widget.stasis]
+type = "hewel/stasis:bar"
+
+# GNOME-like lock screen: clock/date on both outputs, compact auth on DP-1 only.
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-clock@DP-1",
+    "lockscreen-date@DP-1",
+    "lockscreen-login-box@DP-1",
+    "lockscreen-clock@HDMI-A-1",
+    "lockscreen-date@HDMI-A-1",
+    "lockscreen-login-box@HDMI-A-1",
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-clock@DP-1"]
+    type = "clock"
+    output = "DP-1"
+    cx = 1097.0
+    cy = 270.0
+    box_width = 720.0
+    box_height = 150.0
+    rotation = 0.0
+
+        [lockscreen_widgets.widget."lockscreen-clock@DP-1".settings]
+        clock_style = "digital"
+        format = "{:%H:%M}"
+        color = "#FFFFFF"
+        shadow = true
+        center_text = true
+        background = false
+
+    [lockscreen_widgets.widget."lockscreen-date@DP-1"]
+    type = "clock"
+    output = "DP-1"
+    cx = 1097.0
+    cy = 385.0
+    box_width = 720.0
+    box_height = 44.0
+    rotation = 0.0
+
+        [lockscreen_widgets.widget."lockscreen-date@DP-1".settings]
+        clock_style = "digital"
+        format = "{:%A, %B %-d}"
+        color = "#FFFFFF"
+        shadow = true
+        center_text = true
+        background = false
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    type = "login_box"
+    output = "DP-1"
+    cx = 1097.0
+    cy = 980.0
+    box_width = 810.0
+    box_height = 196.0
+    rotation = 0.0
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        layout = "compact"
+        background_color = "surface"
+        background_opacity = 0.12
+        background_radius = 16.0
+        input_opacity = 0.62
+        input_radius = 12.0
+        center_password_text = true
+        show_login_button = false
+        show_session_buttons = false
+        show_media = false
+        show_weather = false
+        show_unlock_hint = true
+        show_caps_lock = true
+        show_keyboard_layout = true
+
+    [lockscreen_widgets.widget."lockscreen-clock@HDMI-A-1"]
+    type = "clock"
+    output = "HDMI-A-1"
+    cx = 411.0
+    cy = 280.0
+    box_width = 700.0
+    box_height = 140.0
+    rotation = 0.0
+
+        [lockscreen_widgets.widget."lockscreen-clock@HDMI-A-1".settings]
+        clock_style = "digital"
+        format = "{:%H:%M}"
+        color = "#FFFFFF"
+        shadow = true
+        center_text = true
+        background = false
+
+    [lockscreen_widgets.widget."lockscreen-date@HDMI-A-1"]
+    type = "clock"
+    output = "HDMI-A-1"
+    cx = 411.0
+    cy = 390.0
+    box_width = 700.0
+    box_height = 40.0
+    rotation = 0.0
+
+        [lockscreen_widgets.widget."lockscreen-date@HDMI-A-1".settings]
+        clock_style = "digital"
+        format = "{:%A, %B %-d}"
+        color = "#FFFFFF"
+        shadow = true
+        center_text = true
+        background = false
+
+    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    type = "login_box"
+    output = "HDMI-A-1"
+    cx = 411.5
+    cy = 1052.0
+    box_width = 791.0
+    box_height = 196.0
+    rotation = 0.0
+    enabled = false
+
+        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        layout = "compact"
+        background_opacity = 0.12
+        show_login_button = false
+        show_session_buttons = false
+        show_media = false
+        show_weather = false
+        show_unlock_hint = false
+        show_caps_lock = true
+        show_keyboard_layout = false

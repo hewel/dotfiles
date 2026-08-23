@@ -1,0 +1,127 @@
+#!/usr/bin/python3
+"""
+Auto-close Chrome Wayland notification toast windows.
+
+Chrome maps web notifications as xdg_toplevel windows with empty app_id and
+title. With niri window-rules (open-floating + open-focused false) they no
+longer always dismiss themselves. This listens to niri's event stream and
+closes matching windows after a short delay.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import threading
+import time
+from socket import AF_UNIX, SHUT_WR, socket
+
+# Seconds before closing a toast.
+TIMEOUT_S = 5.0
+
+# Only close if still matching after the delay.
+# Optional: also require small height (Chrome toasts ~96–142px).
+MAX_HEIGHT = 300
+MAX_WIDTH = 600
+
+
+def send(request: dict) -> None:
+    with socket(AF_UNIX) as sock:
+        sock.connect(os.environ["NIRI_SOCKET"])
+        with sock.makefile("rw") as f:
+            f.write(json.dumps(request))
+            f.flush()
+
+
+def close_window(window_id: int) -> None:
+    send({"Action": {"CloseWindow": {"id": window_id}}})
+
+
+def is_toast(win: dict) -> bool:
+    title = win.get("title") or ""
+    app_id = win.get("app_id") or ""
+    if title or app_id:
+        return False
+    layout = win.get("layout") or {}
+    size = layout.get("window_size") or [0, 0]
+    if len(size) < 2:
+        return False
+    w, h = size[0], size[1]
+    # Empty identity + small (or not yet sized) → treat as toast.
+    if w == 0 and h == 0:
+        return True
+    return w <= MAX_WIDTH and h <= MAX_HEIGHT
+
+
+def main() -> None:
+    if "NIRI_SOCKET" not in os.environ:
+        raise SystemExit("NIRI_SOCKET is not set; run under niri")
+
+    pending: dict[int, threading.Timer] = {}
+    lock = threading.Lock()
+
+    def schedule_close(win: dict) -> None:
+        wid = win["id"]
+        if not is_toast(win):
+            with lock:
+                t = pending.pop(wid, None)
+            if t is not None:
+                t.cancel()
+            return
+
+        def fire() -> None:
+            with lock:
+                pending.pop(wid, None)
+            # Re-check via niri would be ideal; close by id is harmless if gone.
+            try:
+                close_window(wid)
+                print(f"closed toast id={wid}", flush=True)
+            except OSError as e:
+                print(f"close failed id={wid}: {e}", flush=True)
+
+        with lock:
+            old = pending.pop(wid, None)
+            if old is not None:
+                old.cancel()
+            timer = threading.Timer(TIMEOUT_S, fire)
+            timer.daemon = True
+            pending[wid] = timer
+            timer.start()
+        print(
+            f"scheduled close id={wid} in {TIMEOUT_S}s "
+            f"size={(win.get('layout') or {}).get('window_size')} "
+            f"float={win.get('is_floating')}",
+            flush=True,
+        )
+
+    def cancel(wid: int) -> None:
+        with lock:
+            t = pending.pop(wid, None)
+        if t is not None:
+            t.cancel()
+
+    niri_socket = socket(AF_UNIX)
+    niri_socket.connect(os.environ["NIRI_SOCKET"])
+    file = niri_socket.makefile("rw")
+    file.write('"EventStream"')
+    file.flush()
+    niri_socket.shutdown(SHUT_WR)
+
+    print(f"auto-close-chrome-notifs: timeout={TIMEOUT_S}s", flush=True)
+
+    for line in file:
+        event = json.loads(line)
+
+        if changed := event.get("WindowsChanged"):
+            for win in changed["windows"]:
+                schedule_close(win)
+
+        elif changed := event.get("WindowOpenedOrChanged"):
+            schedule_close(changed["window"])
+
+        elif changed := event.get("WindowClosed"):
+            cancel(changed["id"])
+
+
+if __name__ == "__main__":
+    main()

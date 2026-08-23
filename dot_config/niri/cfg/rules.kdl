@@ -1,9 +1,18 @@
-    window-rule {
-        geometry-corner-radius 20 // Set every window radius to 20
-        clip-to-geometry true
-    }
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
 
-    layer-rule {
-        match namespace="^noctalia-wallpaper*"
-        place-within-backdrop true
-    }
+// Chrome Wayland notification toasts: empty app_id + title, steal focus as tiled columns.
+// See: niri event-stream WindowOpenedOrChanged with pid=chrome, size ~360x142.
+window-rule {
+    match app-id="^$" title="^$"
+    open-floating true
+    open-focused false
+    default-floating-position x=16 y=16 relative-to="top-right"
+}
+
+layer-rule {
+    match namespace="^noctalia-backdrop*"
+    place-within-backdrop true
+}

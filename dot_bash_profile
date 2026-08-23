@@ -9,3 +9,11 @@ export PATH="$VOLTA_HOME/bin:$PATH"
 . "$HOME/.local/bin/env"
 
 export XDG_DATA_DIRS="$HOME/.local/share:/usr/share:$XDG_DATA_DIRS"
+
+
+# Added by Antigravity CLI installer
+export PATH="/home/hewel/.local/bin:$PATH"
+. "/home/hewel/.deno/env"
+source /home/hewel/.local/share/bash-completion/completions/deno.bash
+
+. "$HOME/.atuin/bin/env"

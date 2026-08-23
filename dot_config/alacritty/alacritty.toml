@@ -1,0 +1,53 @@
+# Migrated from ~/.config/ghostty/config on 2026-07-30
+# Previous config backed up to alacritty.toml.backup.2026-07-30
+
+[general]
+# Official Catppuccin Frappé
+import = ["~/.config/alacritty/catppuccin-frappe.toml"]
+# ghostty: working-directory = home
+working_directory = "~"
+live_config_reload = true
+
+# ghostty: window-inherit-working-directory = false is covered by
+# working_directory above (every window starts in $HOME).
+
+[window]
+# ghostty: gtk-titlebar = false (Alacritty: no title bar / window chrome)
+decorations = "None"
+# ghostty: window-padding-x/y = 12
+padding = { x = 12, y = 12 }
+# ghostty: background-opacity = 0.875
+opacity = 0.875
+# ghostty: background-blur-radius = 32
+# Alacritty blur is a boolean compositor request (macOS / KDE Wayland only);
+# blur radius is controlled by the compositor, not Alacritty.
+blur = true
+
+[font]
+size = 12
+normal = { family = "Lilex", style = "Regular" }
+bold = { family = "Lilex", style = "Bold" }
+italic = { family = "Lilex", style = "Italic" }
+bold_italic = { family = "Lilex", style = "Bold Italic" }
+
+[cursor]
+# ghostty: cursor-style = block, cursor-style-blink = true
+style = { shape = "Block", blinking = "On" }
+
+[selection]
+# ghostty: copy-on-select = true
+save_to_clipboard = true
+
+[mouse]
+# ghostty: mouse-hide-while-typing = true
+hide_when_typing = true
+
+[keyboard]
+bindings = [
+  # ghostty: keybind = ctrl+shift+n=new_window
+  { key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
+  # ghostty: keybind = shift+enter=text:\n
+  { key = "Return", mods = "Shift", chars = "\n" },
+]
+# ghostty: ctrl+plus / ctrl+minus / ctrl+zero font-size bindings are already
+# Alacritty defaults (Control "+"/"="/"-" /"0"), so they are not repeated here.

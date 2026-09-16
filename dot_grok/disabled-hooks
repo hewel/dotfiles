@@ -1,0 +1,4 @@
+global/settings:post_tool_use[0].hooks[0]
+global/settings:post_tool_use[1].hooks[0]
+global/settings:post_tool_use_failure[0].hooks[0]
+global/settings:post_tool_use_failure[1].hooks[0]

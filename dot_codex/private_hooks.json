@@ -1,0 +1,160 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex --blocking",
+            "timeout": 86400,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "command": "atuin hook codex",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "command": "atuin hook codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "command": "atuin hook codex",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "bash '/home/hewel/.codex/herdr-agent-state.sh' session",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "command": "\"/home/hewel/.local/share/GitKrakenCLI/gk\" ai hook run --host codex",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

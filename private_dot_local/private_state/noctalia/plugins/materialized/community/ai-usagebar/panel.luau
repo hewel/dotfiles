@@ -1,0 +1,946 @@
+--!nonstrict
+-- Expanded panel for one provider. It renders `sections[]`, the CLI's lossless
+-- view, so the credit blocks and free text that `metrics[]` drops still show up.
+
+local report = nil
+local polling = false
+local refreshQueued = false
+
+local shared = require("./shared.luau")
+local providerGlyph, parseIso = shared.providerGlyph, shared.parseIso
+local countdown, resetClock = shared.countdown, shared.resetClock
+local ratio, headline, severityRole = shared.ratio, shared.headline, shared.severityRole
+local modelHeadlines, isCritical = shared.modelHeadlines, shared.isCritical
+local modelGlyph = shared.modelGlyph
+local modelDisplayName = shared.modelDisplayName
+local elapsedPercent, pace = shared.elapsedPercent, shared.pace
+local requestRefresh = shared.requestRefresh
+local providerWarning, unavailable = shared.warning, shared.unavailable
+local saysError, transportError = shared.saysError, shared.transportError
+local NO_FAILURE, asFailure = shared.NO_FAILURE, shared.asFailure
+
+local failure = NO_FAILURE
+
+-- The plan each provider last reported on. A plan carries the limits every
+-- percentage is measured against, so a reading taken under the old one says
+-- nothing about the new one.
+local lastPlan = {}
+
+-- A vendor the user never set up is not listed. The CLI prefixes every such
+-- message with `credentials error:`, but that bucket also holds providers that
+-- are set up and merely unreachable, so the row is dropped only when the CLI
+-- says there is no key at all.
+local function configured(entry)
+    if entry.status ~= "error" then return true end
+    local message = tostring(entry.error or ""):lower()
+    return not (message:find("^credentials error:") and message:find("no api key", 1, true))
+end
+
+-- ── Detail line parsing ───────────────────────────────────────────────────────
+-- "Resets in 1h 58m · 60% elapsed · 30pts ahead". The reset half is already in
+-- `reset_at`; what is left is the pace, and some details carry no reset at all.
+local function plainDetail(detail)
+    local head = tostring(detail or ""):match("^[^·]*") or ""
+    head = noctalia.string.trim(head)
+    if head:lower():find("^resets?%s+in") then return "" end
+    return head
+end
+
+-- ── Entry selection ───────────────────────────────────────────────────────────
+
+local function entries() return shared.entries(report) end
+
+local function currentEntry()
+    local wanted = noctalia.state.get("selected")
+    local first = nil
+    for _, entry in ipairs(entries()) do
+        if configured(entry) then
+            if entry.id == wanted then return entry end
+            if first == nil then first = entry end
+        end
+    end
+    return first
+end
+
+local function updatedText(entry)
+    local at = parseIso(entry and entry.fetched_at)
+    if at == nil then return "" end
+    local minutes = math.floor((os.time() - at) / 60)
+    if minutes < 1 then return noctalia.tr("ui.updated_now") end
+    return noctalia.tr("ui.updated_ago", { minutes = minutes })
+end
+
+-- ── Cards ─────────────────────────────────────────────────────────────────────
+
+local function severityWord(section)
+    local severity = tostring(section and section.severity or "")
+    if severity ~= "high" and severity ~= "critical" then return nil end
+    return noctalia.tr("ui.severity." .. severity)
+end
+
+-- One reading, without the card around it. `title` names it: the metric's own
+-- label, or the window's name inside a card that stacks a model's readings.
+-- `muted` is for the second case, where the card is already titled.
+local function metricRows(section, title, muted)
+    local percent = tonumber(section.percent) or 0
+    local tint = severityRole(section, "on_surface")
+    local fill = severityRole(section, "primary")
+    local value = tostring(section.value or ""):gsub(" of ", " / ")
+    -- Only worth a column of its own when it says more than the percentage.
+    local showValue = value ~= "" and value ~= string.format("%d%%", percent)
+
+    local header = {
+        ui.label({
+            text = tostring(title or ""),
+            fontSize = muted and 11 or 12,
+            fontWeight = muted and "normal" or "semibold",
+            color = muted and "on_surface_variant" or "on_surface",
+            maxLines = 1,
+        }),
+        ui.spacer({ flexGrow = 1 }),
+    }
+    local word = severityWord(section)
+    if word ~= nil then
+        header[#header + 1] = ui.label({ text = word, fontSize = 11, fontWeight = "semibold", color = tint })
+    end
+    if showValue then
+        header[#header + 1] = ui.label({ text = value, fontSize = 11, color = "on_surface_variant", maxLines = 1 })
+    end
+    -- Fixed width, so a column of cards ends on one right edge.
+    header[#header + 1] = ui.label({
+        text = string.format("%d%%", percent),
+        fontSize = 17,
+        fontWeight = "bold",
+        color = tint,
+        width = 46,
+        textAlign = "end",
+    })
+
+    local body = {
+        ui.row({ gap = 6, align = "center" }, header),
+        ui.progress({ progress = ratio(percent), fill = fill, track = "on_surface/0.10", radius = 3, height = 7 }),
+    }
+
+    local elapsed = elapsedPercent(section.detail)
+    if elapsed ~= nil then
+        body[#body + 1] = ui.progress({
+            progress = ratio(elapsed),
+            fill = "on_surface/0.45",
+            track = "on_surface/0.08",
+            radius = 2,
+            height = 3,
+        })
+    end
+
+    local left = countdown(section)
+    local clock = resetClock(section)
+    -- Ahead of the clock is worth flagging; under it means there is room left.
+    local paceText, _, paceWord = pace(section.detail)
+    local paceColor = paceWord == "ahead" and "secondary" or "on_surface_variant"
+    local timing = {}
+    if left ~= "" then
+        timing[#timing + 1] = ui.glyph({ name = "clock", size = 12, color = "on_surface_variant" })
+        timing[#timing + 1] = ui.label({ text = left, fontSize = 11, color = "on_surface_variant" })
+        if clock ~= "" then
+            -- Where the countdown beside it lands, not a reading of its own.
+            timing[#timing + 1] = ui.label({
+                text = "(" .. clock .. ")", fontSize = 11, color = "on_surface_variant",
+            })
+        end
+    end
+    local context = {}
+    if elapsed ~= nil then
+        context[#context + 1] = ui.label({
+            text = noctalia.tr("ui.elapsed", { percent = elapsed }),
+            fontSize = 11, color = "on_surface_variant", maxLines = 1,
+        })
+    end
+    if paceText ~= "" then
+        context[#context + 1] = ui.spacer({ flexGrow = 1 })
+        context[#context + 1] = ui.label({
+            text = paceText, fontSize = 11, fontWeight = "semibold", color = paceColor, maxLines = 1,
+        })
+    end
+    if #timing > 0 then
+        body[#body + 1] = ui.row({ gap = 5, align = "center" }, timing)
+    end
+    if #context > 0 then
+        body[#body + 1] = ui.row({ gap = 5, align = "center" }, context)
+    end
+
+    local rest = plainDetail(section.detail)
+    if rest ~= "" then
+        body[#body + 1] = ui.label({ text = rest, fontSize = 11, color = "on_surface_variant" })
+    end
+
+    return body
+end
+
+local CARD = { gap = 8, padding = 12, radius = 14, fill = "surface_variant/0.40",
+               border = "outline/0.08", borderWidth = 1 }
+
+-- A provider's readings share one card, so the session and the week are read
+-- together. `name` titles it only where the readings need telling apart by
+-- something the panel has not already said: Antigravity reports two models, one
+-- reading per window each. Elsewhere the header names the subject.
+local function stackCard(name, readings)
+    local titled = name ~= ""
+    local body = {}
+    if titled then
+        body[#body + 1] = ui.row({ gap = 8, align = "center" }, {
+            ui.glyph({ name = modelGlyph(name), size = 16, color = "on_surface" }),
+            ui.label({ text = modelDisplayName(name), fontSize = 13, fontWeight = "bold",
+                       color = "on_surface", maxLines = 1 }),
+        })
+    end
+    for index, reading in ipairs(readings) do
+        -- Two readings in one card run together without a line between them,
+        -- whether or not a title stands over both.
+        if index > 1 then
+            body[#body + 1] = ui.spacer({ height = 4 })
+            body[#body + 1] = ui.box({ height = 1, fill = "outline/0.18" })
+            body[#body + 1] = ui.spacer({ height = 4 })
+        end
+        for _, node in ipairs(metricRows(reading.section, reading.title, titled)) do
+            body[#body + 1] = node
+        end
+    end
+    return ui.column(CARD, body)
+end
+
+local function blockCard(section)
+    local resetCredits = section.label == "Reset credits"
+    local body = {
+        ui.label({ text = tostring(section.label or ""), fontSize = 12, fontWeight = "semibold",
+                   color = "on_surface", maxLines = 1 }),
+    }
+    local lines = type(section.body) == "table" and section.body or {}
+    for _, line in ipairs(lines) do
+        local text = noctalia.string.trim(tostring(line))
+        -- A bare "balance:" would read as a row that failed to render.
+        if text:find(":$") then text = text .. " —" end
+        local kind, expiry = text:match("^(.-)%s+·%s+(.+)$")
+        if resetCredits and kind and expiry then
+            body[#body + 1] = ui.column({ gap = 4 }, {
+                ui.label({ text = kind, fontSize = 12, color = "on_surface", maxLines = 2 }),
+                ui.label({ text = expiry, fontSize = 11, color = "on_surface_variant", maxLines = 2 }),
+            })
+        else
+            body[#body + 1] = ui.label({
+                text = text ~= "" and text or "—",
+                fontSize = 11,
+                color = "on_surface_variant",
+                maxLines = resetCredits and 3 or 1,
+            })
+        end
+    end
+    return ui.column({ gap = 4, padding = 12, radius = 14, fill = "surface_variant/0.40",
+                       border = "outline/0.08", borderWidth = 1 }, body)
+end
+
+-- A `text` section the CLI uses for a warning. The `credentials error:` prefix
+-- and the repeated provider name are the CLI talking to a log, not to a panel
+-- that already names the provider in its title.
+local function noteCard(text)
+    local clean = noctalia.string.trim(tostring(text or ""))
+    clean = clean:gsub("^[Cc]redentials error:%s*", "")
+    return ui.row({ gap = 8, align = "start", padding = 12, radius = 14,
+                    fill = "secondary/0.08", border = "outline/0.08", borderWidth = 1 }, {
+        ui.glyph({ name = "alert-triangle", size = 14, color = "secondary" }),
+        ui.label({ text = clean, fontSize = 11, color = "on_surface_variant",
+                   flexGrow = 1, maxLines = 3 }),
+    })
+end
+
+-- `updatedText` heads a live report ("Updated 3 min ago"); a record is dated, not
+-- updated, and reads wrong with that word in front of it.
+local function recordAge(entry)
+    local at = parseIso(entry and entry.fetched_at)
+    if at == nil then return noctalia.tr("ui.last_reading_now") end
+    local minutes = math.floor((os.time() - at) / 60)
+    if minutes < 1 then return noctalia.tr("ui.last_reading_now") end
+    return noctalia.tr("ui.last_reading", { minutes = minutes })
+end
+
+-- Every reading a provider sent, grouped into the subjects it is read by:
+-- Antigravity by model, with the window heading each reading; everyone else
+-- under one subject the header already names. The card and the record share this
+-- grouping so the two cannot disagree about what belongs together.
+local function groupReadings(items, windowed)
+    local order, byName = {}, {}
+    for _, item in ipairs(items) do
+        if item.section.type == "metric" then
+            local label = tostring(item.section.label or "")
+            local name = windowed and label or ""
+            if byName[name] == nil then
+                byName[name] = {}
+                order[#order + 1] = name
+            end
+            local readings = byName[name]
+            readings[#readings + 1] = {
+                section = item.section,
+                title = windowed and item.window or label,
+            }
+        end
+    end
+    return order, byName
+end
+
+-- While a provider is down its numbers record when it was last read, so they
+-- are set in text rather than drawn as bars a glance would read as live.
+local function recordCard(entry, items, windowed)
+    local order, byName = groupReadings(items, windowed)
+    if #order == 0 then return nil end
+
+    local body = {
+        ui.label({ text = recordAge(entry), fontSize = 11, fontWeight = "semibold",
+                   color = "on_surface", maxLines = 1 }),
+    }
+    for _, name in ipairs(order) do
+        local parts = {}
+        for _, reading in ipairs(byName[name]) do
+            local value = tostring(reading.section.value or "")
+            if value == "" then
+                value = string.format("%d%%", tonumber(reading.section.percent) or 0)
+            end
+            parts[#parts + 1] = noctalia.string.trim(reading.title .. " " .. value)
+        end
+        local line = table.concat(parts, " · ")
+        if name ~= "" then
+            body[#body + 1] = ui.row({ gap = 6, align = "center" }, {
+                ui.label({ text = modelDisplayName(name), fontSize = 11, color = "on_surface_variant", maxLines = 1 }),
+                ui.spacer({ flexGrow = 1 }),
+                ui.label({ text = line, fontSize = 11, color = "on_surface", maxLines = 1 }),
+            })
+        else
+            body[#body + 1] = ui.label({ text = line, fontSize = 11, color = "on_surface",
+                                        maxLines = 1 })
+        end
+    end
+    return ui.column({ gap = 4, padding = 12, radius = 14, fill = "surface_variant/0.40",
+                       border = "outline/0.08", borderWidth = 1 }, body)
+end
+
+-- Everything in a report that is not a reading: credit blocks, headings,
+-- warnings, free text. A provider that is down loses its gauges, not the rest of
+-- what the CLI said, so both passes draw these the same way. `warned` says the
+-- warning already stands at the top, so it is not said twice.
+-- A credits block with zero balance and no usage is skipped: showing an empty
+-- card for a user who does not purchase or use credits is noise.
+local function isEmptyCredits(section)
+    if section.type ~= "block" then return false end
+    local label = tostring(section.label or ""):lower()
+    if not label:find("credit", 1, true) then return false end
+
+    local lines = type(section.body) == "table" and section.body or {}
+    if #lines == 0 then return true end
+
+    local hasPositive = false
+    for _, line in ipairs(lines) do
+        local text = tostring(line):lower()
+        local balanceVal = text:match("balance:%s*(.*)")
+        if balanceVal ~= nil then
+            local num = tonumber(balanceVal:match("[%d%.]+"))
+            if num ~= nil and num > 0 then
+                hasPositive = true
+                break
+            end
+        else
+            for numStr in text:gmatch("[%d%.]+") do
+                local n = tonumber(numStr)
+                if n ~= nil and n > 0 then
+                    hasPositive = true
+                    break
+                end
+            end
+        end
+    end
+    return not hasPositive
+end
+
+local function otherCard(section, warned)
+    if section.type == "block" then
+        if isEmptyCredits(section) then return nil end
+        return blockCard(section)
+    end
+
+    if section.type == "text" then
+        local label = tostring(section.label or "")
+        local value = tostring(section.value or "")
+        if transportError(label) or transportError(value) then return nil end
+        if label:lower() == "warning" or saysError(value) then
+            if warned then return nil end
+            return noteCard(value)
+        end
+        return ui.row({ gap = 6, align = "center" }, {
+            ui.label({ text = label, fontSize = 11, color = "on_surface_variant" }),
+            ui.spacer({ flexGrow = 1 }),
+            ui.label({ text = value, fontSize = 11, color = "on_surface", maxLines = 1 }),
+        })
+    end
+
+    if section.type == "title" then
+        return ui.label({
+            text = tostring(section.value or section.label or ""),
+            fontSize = 12, fontWeight = "semibold", color = "on_surface",
+        })
+    end
+
+    -- Keep schema additions visible instead of silently losing report data.
+    return ui.label({
+        text = tostring(section.value or section.label or section.type or "—"),
+        fontSize = 11, color = "on_surface_variant",
+    })
+end
+
+-- ── Provider list ─────────────────────────────────────────────────────────────
+
+local function providerRow(entry, selected)
+    local metric = headline(entry)
+    local percent = metric ~= nil and tonumber(metric.percent) or nil
+    -- Down is down whether the CLI failed the provider outright or kept serving
+    -- what it cached: either way the row stops drawing a gauge for it.
+    local broken = entry.status == "error" or unavailable(entry)
+    local tint = severityRole(metric, "on_surface")
+    local submodels = modelHeadlines(entry)
+    local metrics = type(entry.metrics) == "table" and entry.metrics or {}
+
+    -- The reading keeps its severity colour whether or not the row is selected:
+    -- recolouring it hides the one thing the list exists to compare.
+    local right
+    local gaugeNode = nil
+
+    if broken then
+        right = ui.row({ width = 48, justify = "end" }, {
+            ui.glyph({ name = "alert-circle", size = 14, color = "error" }),
+        })
+    elseif #submodels > 0 then
+        local colChildren = {}
+        local modelPairGroups = {}
+        for _, item in ipairs(submodels) do
+            local mMetrics = type(item.metrics) == "table" and item.metrics or { item.metric }
+            local m1 = mMetrics[1] or item.metric
+            local m2 = mMetrics[2]
+            local p1 = tonumber(m1.percent) or 0
+            local p2 = m2 ~= nil and tonumber(m2.percent) or nil
+            local t1 = isCritical(m1) and "error" or severityRole(m1, "on_surface")
+            local t2 = m2 ~= nil and (isCritical(m2) and "error" or severityRole(m2, "on_surface_variant")) or nil
+
+            local pctElements = {
+                ui.label({
+                    text = string.format("%d%%", p1),
+                    fontSize = 11,
+                    fontWeight = "bold",
+                    color = t1,
+                    textAlign = "end",
+                    maxLines = 1,
+                }),
+            }
+            if p2 ~= nil then
+                pctElements[#pctElements + 1] = ui.label({
+                    text = string.format("/ %d%%", p2),
+                    fontSize = 11,
+                    fontWeight = "medium",
+                    color = t2,
+                    textAlign = "end",
+                    maxLines = 1,
+                })
+            end
+
+            colChildren[#colChildren + 1] = ui.row({ gap = 3, align = "center", justify = "end" }, {
+                ui.glyph({
+                    name = item.glyph or "sparkles",
+                    size = 11,
+                    color = "on_surface_variant",
+                }),
+                ui.row({ gap = 2, align = "center", justify = "end" }, pctElements),
+            })
+
+            local modelBars = {}
+            for _, m in ipairs(mMetrics) do
+                local p = tonumber(m.percent) or 0
+                local f = isCritical(m) and "error" or severityRole(m, "primary")
+                modelBars[#modelBars + 1] = ui.progress({
+                    progress = ratio(p),
+                    fill = f,
+                    track = "on_surface/0.10",
+                    radius = 1,
+                    height = 2,
+                })
+            end
+            modelPairGroups[#modelPairGroups + 1] = ui.column({ gap = 2 }, modelBars)
+        end
+        gaugeNode = ui.column({ gap = 6 }, modelPairGroups)
+        local rightChildren = {
+            ui.column({ gap = 3, align = "end" }, colChildren),
+        }
+        if entry.stale == true then
+            rightChildren[#rightChildren + 1] = ui.glyph({
+                name = "clock-exclamation", size = 12, color = "secondary",
+            })
+        end
+        right = ui.row({ gap = 3, width = 76, justify = "end", align = "center" }, rightChildren)
+    elseif #metrics >= 2 then
+        local m1, m2 = metrics[1], metrics[2]
+        local p1 = tonumber(m1.percent) or 0
+        local p2 = tonumber(m2.percent) or 0
+        local t1 = severityRole(m1, "on_surface")
+        local t2 = severityRole(m2, "on_surface_variant")
+        local f1 = severityRole(m1, "primary")
+        local f2 = severityRole(m2, "primary")
+
+        gaugeNode = ui.column({ gap = 2 }, {
+            ui.progress({ progress = ratio(p1), fill = f1, track = "on_surface/0.10", radius = 2, height = 3 }),
+            ui.progress({ progress = ratio(p2), fill = f2, track = "on_surface/0.10", radius = 2, height = 3 }),
+        })
+
+        local rightChildren = {
+            ui.column({ gap = 1, align = "end" }, {
+                ui.label({
+                    text = string.format("%d%%", p1),
+                    fontSize = 11,
+                    fontWeight = "bold",
+                    color = t1,
+                    textAlign = "end",
+                    maxLines = 1,
+                }),
+                ui.label({
+                    text = string.format("%d%%", p2),
+                    fontSize = 11,
+                    fontWeight = "medium",
+                    color = t2,
+                    textAlign = "end",
+                    maxLines = 1,
+                }),
+            }),
+        }
+        if entry.stale == true then
+            rightChildren[#rightChildren + 1] = ui.glyph({
+                name = "clock-exclamation", size = 12, color = "secondary",
+            })
+        end
+        right = ui.row({ gap = 3, width = 56, justify = "end", align = "center" }, rightChildren)
+    else
+        local p1 = percent ~= nil and percent or 0
+        if percent ~= nil then
+            gaugeNode = ui.progress({
+                progress = ratio(p1),
+                fill = severityRole(metric, "primary"),
+                track = "on_surface/0.12",
+                radius = 2,
+                height = 4,
+            })
+        end
+        local rightChildren = {
+            ui.label({
+                text = percent ~= nil and string.format("%d%%", percent) or "—",
+                fontSize = 13,
+                fontWeight = "bold",
+                color = tint,
+                width = 34,
+                textAlign = "end",
+            }),
+        }
+        if entry.stale == true then
+            rightChildren[#rightChildren + 1] = ui.glyph({
+                name = "clock-exclamation", size = 12, color = "secondary",
+            })
+        end
+        right = ui.row({ gap = 3, width = 48, justify = "end", align = "center" }, rightChildren)
+    end
+
+    local lines = {
+        ui.label({
+            text = tostring(entry.display_name or entry.id),
+            fontSize = 12, fontWeight = "semibold",
+            color = selected and "primary" or "on_surface", maxLines = 1,
+        }),
+    }
+    if gaugeNode ~= nil and not broken then
+        lines[#lines + 1] = gaugeNode
+    end
+    lines[#lines + 1] = ui.label({
+        text = shared.readFailure(entry) and noctalia.tr("ui.error.failed")
+            or broken and noctalia.tr("ui.unavailable") or tostring(entry.plan or entry.id or ""),
+        fontSize = 11, color = "on_surface_variant", maxLines = 1,
+    })
+    if #submodels > 0 and not broken then
+        lines[#lines + 1] = ui.spacer({ height = 3 })
+    end
+
+    return ui.row({
+        -- Keyed, so the click handler survives the second tick the countdowns ride
+        -- on instead of being rebuilt under the pointer.
+        key = "provider-" .. tostring(entry.id),
+        gap = 8, align = "center", padding = 9, radius = 10,
+        -- A tint, not a slab: a filled `primary` row inverts every colour in it.
+        fill = selected and "primary/0.10" or "surface_variant/0.30",
+        border = selected and "primary/0.55" or "outline/0.12",
+        borderWidth = 1,
+        onClick = function()
+            noctalia.state.set("selected", tostring(entry.id))
+            render()
+        end,
+    }, {
+        ui.glyph({ name = providerGlyph(entry.id), size = selected and 18 or 16,
+                   color = selected and "primary" or "on_surface" }),
+        ui.column({ gap = 3, flexGrow = 1 }, lines),
+        right,
+    })
+end
+
+-- ── Render ────────────────────────────────────────────────────────────────────
+
+-- The CLI's own words come last and smallest, where a bug report can quote them.
+local function errorBlock()
+    local key = "ui.error." .. failure.code
+    local children = {
+        ui.row({ gap = 6, align = "center" }, {
+            ui.glyph({ name = "alert-circle", size = 18, color = "error" }),
+            ui.label({ text = noctalia.tr(key), fontSize = 12, fontWeight = "bold", color = "error" }),
+        }),
+        ui.label({ text = noctalia.tr(key .. "_hint"), fontSize = 11, color = "on_surface_variant" }),
+    }
+
+    if failure.detail ~= "" then
+        children[#children + 1] = ui.label({
+            text = failure.detail, fontSize = 11, color = "on_surface_variant", maxLines = 3,
+        })
+    end
+
+    local actions = {
+        ui.button({
+            text = noctalia.tr("ui.retry"), glyph = "refresh",
+            variant = "outline", controlSize = "sm",
+            enabled = not polling,
+            onClick = requestRefresh,
+        }),
+    }
+
+    if failure.code == "not_installed" then
+        children[#children + 1] = ui.label({
+            text = "https://github.com/akitaonrails/ai-usagebar",
+            fontSize = 11, color = "on_surface", maxLines = 2,
+        })
+    end
+    children[#children + 1] = ui.row({ gap = 6, align = "center" }, actions)
+
+    return ui.column({ gap = 8, padding = 12, radius = 14,
+                       fill = "error/0.06", border = "error/0.12", borderWidth = 1 }, children)
+end
+
+local function listPane(entry)
+    local rows = {}
+    for _, candidate in ipairs(entries()) do
+      if configured(candidate) then
+        rows[#rows + 1] = providerRow(candidate, entry ~= nil and candidate.id == entry.id)
+      end
+    end
+    return ui.column({ gap = 10, padding = 14, width = 290 }, {
+        ui.row({ gap = 8, align = "center" }, {
+            ui.glyph({ name = "brain", size = 18, color = "primary" }),
+            -- The accent belongs to the selection and the bars; a title taking
+            -- it too would leave the panel with no quiet level.
+            ui.label({ text = noctalia.tr("ui.title"), fontSize = 15, fontWeight = "bold", color = "on_surface" }),
+            ui.spacer({ flexGrow = 1 }),
+            -- One slot for the read: the button becomes the spinner, instead of
+            -- a second glyph pushing the header around.
+            ui.button({
+                glyph = polling and "loader-2" or refreshQueued and "clock" or "refresh",
+                variant = "ghost", controlSize = "sm",
+                tooltip = noctalia.tr(polling and "ui.refreshing"
+                    or refreshQueued and "ui.refresh_queued" or "ui.refresh"),
+                enabled = not polling,
+                onClick = requestRefresh,
+            }),
+            -- The capsule answers a middle click with this too, but the panel is
+            -- where that decision is made.
+            ui.button({
+                glyph = "settings",
+                variant = "ghost", controlSize = "sm",
+                tooltip = noctalia.tr("ui.settings"),
+                onClick = function() noctalia.openSettings() end,
+            }),
+        }),
+        ui.scroll({ gap = 6, flexGrow = 1 }, rows),
+    })
+end
+
+local function detailPane(entry)
+    local title = noctalia.tr("ui.title")
+    local subtitle = ""
+    if entry ~= nil then
+        -- The provider names the pane, the plan qualifies it, the same order the
+        -- list uses. The CLI keeps them apart: `display_name` vs `plan`.
+        title = tostring(entry.display_name or entry.id)
+        subtitle = tostring(entry.plan or "")
+        if subtitle == title then subtitle = "" end
+    end
+
+    -- With no entry the pane stays empty rather than repeating the list's title.
+    local children = {}
+    if entry ~= nil then
+        local planBadge = subtitle ~= "" and ui.row({
+            gap = 4, align = "center", padding = 4, radius = 6,
+            fill = "surface_variant/0.45", border = "outline/0.08", borderWidth = 1,
+        }, {
+            ui.label({ text = subtitle, fontSize = 11, fontWeight = "medium",
+                       color = "on_surface_variant", maxLines = 1 }),
+        }) or nil
+
+        children[#children + 1] = ui.row({ gap = 10, align = "center" }, {
+            ui.glyph({ name = providerGlyph(entry.id), size = 22, color = "on_surface" }),
+            ui.column({ gap = 2, flexGrow = 1 }, {
+                ui.row({ gap = 8, align = "center" }, {
+                    ui.label({ text = title, fontSize = 16, fontWeight = "bold",
+                               color = "on_surface", maxLines = 1 }),
+                    planBadge,
+                }),
+            }),
+        })
+    end
+
+    -- The id and a "ready" status are skipped: the id is the row just clicked,
+    -- and a healthy read is the default. A provider that is down is skipped
+    -- altogether: its record below dates the same fetch, in the right tense.
+    if entry ~= nil and not unavailable(entry) then
+        local chips = {}
+        if entry.stale == true then
+            chips[#chips + 1] = ui.label({ text = noctalia.tr("ui.stale"), fontSize = 11, color = "secondary" })
+        end
+        local fetched = parseIso(entry.fetched_at)
+        if fetched ~= nil then
+            if #chips > 0 then
+                chips[#chips + 1] = ui.label({ text = "·", fontSize = 11, color = "on_surface_variant" })
+            end
+            chips[#chips + 1] = ui.glyph({ name = "clock", size = 11, color = "on_surface_variant" })
+            chips[#chips + 1] = ui.label({
+                text = updatedText(entry) .. " · " .. noctalia.formatTime(noctalia.timeFormat(), fetched),
+                fontSize = 11, color = "on_surface_variant",
+            })
+        end
+        if #chips > 0 then
+            children[#children + 1] = ui.row({ gap = 4, align = "center" }, chips)
+        end
+    end
+
+    -- The read failed, but cached numbers remain the useful answer. Mark their
+    -- age quietly instead of making a transient network failure the headline.
+    if failure.code ~= "" then
+        children[#children + 1] = ui.row({ gap = 6, align = "center" }, {
+            ui.glyph({ name = "clock-exclamation", size = 13, color = "secondary" }),
+            ui.label({ text = noctalia.tr("ui.stale_hint"), fontSize = 11,
+                       color = "on_surface_variant", flexGrow = 1, maxLines = 1 }),
+            ui.button({
+                text = noctalia.tr("ui.retry"), glyph = "refresh",
+                variant = "ghost", controlSize = "sm",
+                enabled = not polling,
+                onClick = requestRefresh,
+            }),
+        })
+    end
+
+    -- Only exhausted quotas need a notice above the detailed windows.
+    if entry ~= nil and not unavailable(entry) then
+        local models = modelHeadlines(entry)
+        if #models == 0 then
+            models = { { displayName = title, metric = headline(entry) } }
+        end
+        local summary = {}
+        for _, model in ipairs(models) do
+            local metric = model.blockingMetric or model.metric
+            if (tonumber(metric and metric.percent) or 0) >= 100 then
+                local left = shared.fixedCountdown(metric)
+                local details = {
+                    ui.label({ text = model.displayName .. " · " .. noctalia.tr("ui.quota_exhausted"),
+                               fontSize = 11, color = "error", maxLines = 1 }),
+                }
+                if left ~= "" then
+                    details[#details + 1] = ui.label({
+                        text = noctalia.tr("ui.quota_reset", { time = left }),
+                        fontSize = 11, color = "on_surface_variant", maxLines = 1,
+                    })
+                end
+                summary[#summary + 1] = ui.row({ gap = 8, padding = 8, radius = 10,
+                    fill = "surface_variant/0.40", border = "error/0.40",
+                    borderWidth = 1, align = "center" }, {
+                    ui.glyph({ name = "clock-exclamation", size = 16, color = "error" }),
+                    ui.column({ gap = 2, flexGrow = 1 }, details),
+                })
+            end
+        end
+        if #summary > 0 then children[#children + 1] = ui.column({ gap = 6 }, summary) end
+    end
+
+    local cards = {}
+    local sections = entry ~= nil and type(entry.sections) == "table" and entry.sections or {}
+
+    -- Pass one: pair every reading with the heading over it, and drop the padding
+    -- the CLI puts between sections -- the column sets its own gap, and a spacer
+    -- left by a consumed heading would double it.
+    local windowed = false
+    local heading = ""
+    local items = {}
+    for _, section in ipairs(sections) do
+        if type(section) == "table" then
+            local text = section.type == "text"
+            if text and noctalia.string.trim(tostring(section.value or "")) == "" then
+                heading = tostring(section.label or "")
+                windowed = windowed or heading ~= ""
+            elseif section.type ~= "spacer" then
+                items[#items + 1] = { section = section, window = heading }
+            end
+        end
+    end
+
+    -- A provider that is down draws no gauges: a bar reads as a live reading, and
+    -- nothing is reading. The warning takes their place, and the last numbers
+    -- follow as a record, unless a plan change made them meaningless.
+    local warning = entry ~= nil and providerWarning(entry) or ""
+    if warning ~= "" then
+        cards[#cards + 1] = noteCard(warning)
+        local id = tostring(entry.id or "")
+        local previous = lastPlan[id]
+        local current = tostring(entry.plan or "")
+        -- Only a plan the CLI names on both sides is evidence of a change: an
+        -- entry that fell over and stopped naming one says nothing.
+        if previous ~= nil and previous ~= "" and current ~= "" and previous ~= current then
+            cards[#cards + 1] = ui.label({ text = noctalia.tr("ui.plan_changed"), fontSize = 11,
+                                           color = "on_surface_variant", maxLines = 2 })
+        else
+            local record = recordCard(entry, items, windowed)
+            if record ~= nil then cards[#cards + 1] = record end
+        end
+    else
+        -- Pass two: every reading a provider sends, in the cards it is read by.
+        local order, byName = groupReadings(items, windowed)
+        for _, name in ipairs(order) do cards[#cards + 1] = stackCard(name, byName[name]) end
+    end
+
+    -- The rest is the same either way: losing the gauges is no reason to lose
+    -- what else the CLI said.
+    for _, item in ipairs(items) do
+        if item.section.type ~= "metric" then
+            local card = otherCard(item.section, warning ~= "")
+            if card ~= nil then cards[#cards + 1] = card end
+        end
+    end
+
+    -- A section list that lost every card to a heading would otherwise scroll an
+    -- empty column.
+    if #cards > 0 then
+        -- 24, not the column's usual 8: the CLI used to pad its own sections and
+        -- dropping that padding would have pulled every provider's cards together.
+        children[#children + 1] = ui.scroll({ gap = 24, flexGrow = 1 }, cards)
+    elseif entry ~= nil then
+        children[#children + 1] = ui.row({ gap = 6, align = "center" }, {
+            ui.glyph({ name = "info-circle", size = 14, color = "on_surface_variant" }),
+            ui.label({ text = noctalia.tr("ui.no_usage"), fontSize = 11, color = "on_surface_variant" }),
+        })
+        children[#children + 1] = ui.spacer({ flexGrow = 1 })
+    end
+
+    return ui.column({ gap = 8, padding = 14, flexGrow = 1 }, children)
+end
+
+function render()
+    local entry = currentEntry()
+    -- A failure with nothing behind it is the whole panel; with a report behind
+    -- it, a banner over readings that are still the best answer available. A
+    -- report whose every row was dropped still counts as one: the panel it draws
+    -- is empty, not absent.
+    if failure.code ~= "" and report == nil then
+        -- The panel keeps its manifest size, and a failure has nowhere near
+        -- 720x400 to say. Bounded and centred, the empty surround reads as
+        -- composition rather than a half-drawn frame.
+        panel.render(ui.column({ flexGrow = 1, padding = 14, align = "center", justify = "center" }, {
+            ui.column({ gap = 10, width = 320 }, {
+                ui.row({ gap = 8, align = "center" }, {
+                    ui.glyph({ name = "brain", size = 18, color = "primary" }),
+                    ui.label({ text = noctalia.tr("ui.title"), fontSize = 15,
+                               fontWeight = "bold", color = "on_surface" }),
+                }),
+                errorBlock(),
+            }),
+        }))
+        return
+    end
+
+    -- Both panes must be told to fill the panel, or their ui.scroll children ask
+    -- for their natural height and the cards overflow.
+    panel.render(ui.row({ gap = 0, flexGrow = 1, align = "stretch" }, {
+        listPane(entry),
+        ui.separator({ orientation = "vertical", color = "outline", opacity = 0.28 }),
+        detailPane(entry),
+    }))
+end
+
+-- ── Wiring ────────────────────────────────────────────────────────────────────
+
+-- Rebuilt from the report rather than added to, so the map holds one key per
+-- provider on screen instead of every id the panel has seen since it opened.
+local function rememberPlans()
+    local seen = {}
+    for _, entry in ipairs(entries()) do
+        if type(entry) == "table" then
+            local id = tostring(entry.id or "")
+            -- A provider that is down is serving what it cached, so the plan to
+            -- keep is the one it last reported for real.
+            if unavailable(entry) then
+                seen[id] = lastPlan[id]
+            else
+                seen[id] = tostring(entry.plan or "")
+            end
+        end
+    end
+    lastPlan = seen
+end
+
+noctalia.state.watch("report", function(value)
+    if type(value) == "table" then
+        report = value
+        failure = NO_FAILURE
+        rememberPlans()
+        render()
+    end
+end)
+
+noctalia.state.watch("error", function(value)
+    failure = asFailure(value)
+    render()
+end)
+
+noctalia.state.watch("polling", function(value)
+    polling = value == true
+    render()
+end)
+
+noctalia.state.watch("refresh_queued", function(value)
+    refreshQueued = value == true
+    render()
+end)
+
+function onOpen(_context)
+    -- Every open asks for fresh numbers. The CLI answers from its cache when it
+    -- has one, and the poller drops requests that arrive too close together.
+    requestRefresh()
+    report = noctalia.state.get("report")
+    rememberPlans()
+    failure = asFailure(noctalia.state.get("error"))
+    polling = noctalia.state.get("polling") == true
+    refreshQueued = noctalia.state.get("refresh_queued") == true
+    -- Countdowns tick locally; the CLI is only woken by the poller's interval.
+    panel.setWantsSecondTicks(true)
+    render()
+end
+
+-- Panel second tick, for the countdowns.
+function update()
+    render()
+end
+
+function onClose()
+    panel.setWantsSecondTicks(false)
+end
+
+render()

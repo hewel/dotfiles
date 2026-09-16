@@ -16,3 +16,25 @@ layer-rule {
     match namespace="^noctalia-backdrop*"
     place-within-backdrop true
 }
+
+// Raycast-style anyrun: dark HUD, rounded shadow. Keep the
+// surface tight (close_on_click off) so blur does not cover the screen.
+layer-rule {
+    match namespace="^anyrun$"
+
+    geometry-corner-radius 16
+
+    shadow {
+        on
+        softness 40
+        spread 4
+        offset x=0 y=16
+        color "#00000066"
+    }
+
+    background-effect {
+        blur true
+        xray false
+        noise 0.02
+    }
+}

@@ -42,6 +42,14 @@ window-rule {
     }
 }
 
+layer-rule {
+        match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+
+    background-effect {
+        xray false
+    }
+}
+
 binds {
     Print { spawn-sh "grim -t ppm -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --actions-on-enter \"save-to-clipboard,exit\" --actions-on-escape \"exit\""; }
 }

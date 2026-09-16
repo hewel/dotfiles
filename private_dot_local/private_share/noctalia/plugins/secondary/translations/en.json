@@ -1,0 +1,17 @@
+{
+  "settings.output.label": "Secondary output",
+  "settings.output.description": "niri connector to toggle, for example HDMI-A-1.",
+  "settings.notify.label": "Notify on toggle",
+  "settings.notify.description": "Show a notification when the secondary output is turned off or on.",
+  "ui.title": "Secondary",
+  "ui.on": "Secondary",
+  "ui.off": "Screen off",
+  "ui.missing": "Unplugged",
+  "ui.unavailable": "niri unavailable",
+  "ui.notify_off": "Secondary display off",
+  "ui.notify_on": "Secondary display on",
+  "ui.err_missing": "Secondary display is not connected.",
+  "ui.err_last": "Refusing to turn off the only enabled display.",
+  "ui.err_niri": "niri is not available.",
+  "ui.err_failed": "Could not change the secondary display."
+}

@@ -1,0 +1,115 @@
+/* Raycast-style anyrun — dark HUD by default.
+ * Surfaces use Colloid-Dark (#2C2C2C); accent still comes from the
+ * active GTK theme (@accent_bg_color). Outer 16 / inner 8 / pad 8 stay concentric.
+ * Window shadow and backdrop blur are applied by niri (layer-rule namespace anyrun).
+ */
+
+@define-color bg-color rgba(44, 44, 44, 0.88);
+@define-color fg-color #ffffff;
+@define-color desc-color rgba(255, 255, 255, 0.55);
+@define-color selected-bg alpha(@accent_bg_color, 0.22);
+@define-color hover-bg rgba(255, 255, 255, 0.06);
+@define-color hairline rgba(255, 255, 255, 0.10);
+@define-color caret @accent_bg_color;
+
+* {
+  all: unset;
+  font-family: "Adwaita Sans", "Sarasa Gothic SC", sans-serif;
+  font-size: 14px;
+  color: @fg-color;
+}
+
+window {
+  background: transparent;
+}
+
+box.main {
+  padding: 8px;
+  border-radius: 16px;
+  background-color: @bg-color;
+  outline: 1px solid @hairline;
+  outline-offset: -1px;
+}
+
+text {
+  padding: 10px 10px 8px 10px;
+  min-height: 24px;
+  font-size: 18px;
+  font-weight: 400;
+  color: @fg-color;
+  caret-color: @caret;
+  background-color: transparent;
+}
+
+text selection {
+  background-color: alpha(@accent_bg_color, 0.28);
+  color: @fg-color;
+}
+
+.matches {
+  background-color: transparent;
+}
+
+box.plugin:first-child {
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid @hairline;
+}
+
+box.plugin {
+  background-color: transparent;
+}
+
+list.plugin {
+  background-color: transparent;
+}
+
+row.match {
+  padding: 5px 8px;
+  margin: 1px 0;
+  border-radius: 8px;
+  min-height: 40px;
+  background-color: transparent;
+  transition-property: background-color;
+  transition-duration: 120ms;
+}
+
+row.match:hover {
+  background-color: @hover-bg;
+}
+
+row.match:selected {
+  background-color: @selected-bg;
+}
+
+box.match {
+  background-color: transparent;
+}
+
+image.match {
+  margin-right: 4px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+label.match.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: @fg-color;
+}
+
+label.match.description {
+  font-size: 12px;
+  font-weight: 400;
+  color: @desc-color;
+}
+
+row.match:selected label.match.title,
+row.match:hover label.match.title {
+  color: @fg-color;
+}
+
+row.match:selected label.match.description,
+row.match:hover label.match.description {
+  color: @desc-color;
+}

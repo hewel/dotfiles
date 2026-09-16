@@ -1,0 +1,8 @@
+{
+  "ui.title": "Suspend",
+  "ui.blocked": "Blocked (nosleep)",
+  "ui.allowed": "Allowed (sleepok)",
+  "ui.hint": "Toggle",
+  "ui.hint_value": "Right-click to switch",
+  "ui.agents": "Agent"
+}

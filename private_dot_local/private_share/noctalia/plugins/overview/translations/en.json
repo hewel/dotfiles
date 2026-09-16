@@ -1,0 +1,12 @@
+{
+  "settings.show_index.label": "Show index",
+  "settings.show_index.description": "Show the workspace number next to each indicator.",
+  "settings.show_dots.label": "Window dots",
+  "settings.show_dots.description": "Show a small occupancy mark for windows on the rail.",
+  "ui.title": "Workspaces",
+  "ui.workspace": "Workspace",
+  "ui.windows": "Windows",
+  "ui.output": "Output",
+  "ui.empty": "No workspaces on this output.",
+  "ui.window_count": "{count} windows"
+}

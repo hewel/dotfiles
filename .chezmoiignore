@@ -1,0 +1,10 @@
+# VCS / build artifacts that may appear under plugin trees
+**/.git
+**/.git/**
+**/__pycache__
+**/*.pyc
+**/.DS_Store
+
+# Community plugin test fixtures include synthetic secrets; not needed at runtime
+.local/state/noctalia/plugins/materialized/**/tests
+.local/state/noctalia/plugins/materialized/**/tests/**

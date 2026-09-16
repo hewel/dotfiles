@@ -1,0 +1,7 @@
+{
+  "name": "omp-plugins",
+  "private": true,
+  "dependencies": {
+    "@qoder-ai/better-harness": "https://github.com/QoderAI/better-harness.git"
+  }
+}

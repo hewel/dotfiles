@@ -1,0 +1,12 @@
+{
+  "settings.show_index.label": "显示编号",
+  "settings.show_index.description": "在指示器旁显示工作区编号。",
+  "settings.show_dots.label": "窗口圆点",
+  "settings.show_dots.description": "用小圆点表示工作区中的窗口数量。",
+  "ui.title": "工作区",
+  "ui.workspace": "工作区",
+  "ui.windows": "窗口",
+  "ui.output": "显示器",
+  "ui.empty": "这块屏幕上没有工作区。",
+  "ui.window_count": "{count} 个窗口"
+}

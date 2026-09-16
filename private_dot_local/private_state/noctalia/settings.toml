@@ -1,0 +1,299 @@
+config_version = 14
+
+[backdrop]
+blur_intensity = 0.99999997764825821
+enabled = true
+tint_intensity = 0.19999999552965164
+
+[bar.default]
+background_opacity = 0.84999998100101948
+center = [ "media", "center-gap-1", "clock", "center-gap-2", "nosleep", "notes" ]
+end = [ "tray", "clipboard", "network", "bluetooth", "volume", "notifications", "battery", "control-center", "session" ]
+margin_ends = 0
+radius = 16
+radius_bottom_left = 0
+radius_bottom_right = 16
+radius_top_left = 0
+radius_top_right = 16
+start = [ "launcher", "workspaces", "active_window", "widget" ]
+
+[calendar]
+
+[control_center.calendar]
+show_events_card = false
+
+[desktop_widgets]
+schema_version = 2
+widget_order = [ "desktop-widget-0000000000000001" ]
+
+    [desktop_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [desktop_widgets.widget.desktop-widget-0000000000000001]
+    box_height = 336.0
+    box_width = 448.0
+    cx = 443.50003051757812
+    cy = 521.0
+    output = "HDMI-A-1"
+    placement_height = 1234.0
+    placement_width = 823.0
+    rotation = 0.0
+    type = "clock"
+
+        [desktop_widgets.widget.desktop-widget-0000000000000001.settings]
+        background = true
+        center_text = true
+        clock_style = "digital"
+        color = "on_surface_variant"
+        shadow = false
+
+[dock]
+active_monitor_only = true
+reserve_space = false
+smart_auto_hide = true
+
+[lockscreen_widgets]
+enabled = true
+schema_version = 2
+widget_order = [
+    "lockscreen-clock@DP-1",
+    "lockscreen-date@DP-1",
+    "lockscreen-login-box@DP-1",
+    "lockscreen-clock@HDMI-A-1",
+    "lockscreen-date@HDMI-A-1",
+    "lockscreen-login-box@HDMI-A-1"
+]
+
+    [lockscreen_widgets.grid]
+    cell_size = 16
+    major_interval = 4
+    visible = true
+
+    [lockscreen_widgets.widget."lockscreen-clock@DP-1"]
+    box_height = 150.0
+    box_width = 720.0
+    cx = 1097.0
+    cy = 270.0
+    output = "DP-1"
+    placement_height = 1234.0
+    placement_width = 2194.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget."lockscreen-clock@DP-1".settings]
+        background = false
+        center_text = true
+        clock_style = "digital"
+        color = "#FFFFFF"
+        format = "{:%H:%M}"
+        shadow = true
+
+    [lockscreen_widgets.widget."lockscreen-clock@HDMI-A-1"]
+    box_height = 140.0
+    box_width = 700.0
+    cx = 411.0
+    cy = 279.99993896484375
+    output = "HDMI-A-1"
+    placement_height = 1234.0
+    placement_width = 823.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget."lockscreen-clock@HDMI-A-1".settings]
+        background = false
+        center_text = true
+        clock_style = "digital"
+        color = "#FFFFFF"
+        format = "{:%H:%M}"
+        shadow = true
+
+    [lockscreen_widgets.widget."lockscreen-date@DP-1"]
+    box_height = 44.0
+    box_width = 720.0
+    cx = 1097.0
+    cy = 385.0
+    output = "DP-1"
+    placement_height = 1234.0
+    placement_width = 2194.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget."lockscreen-date@DP-1".settings]
+        background = false
+        center_text = true
+        clock_style = "digital"
+        color = "#FFFFFF"
+        format = "{:%A, %B %-d}"
+        shadow = true
+
+    [lockscreen_widgets.widget."lockscreen-date@HDMI-A-1"]
+    box_height = 40.0
+    box_width = 700.0
+    cx = 411.0
+    cy = 390.0
+    output = "HDMI-A-1"
+    placement_height = 1234.0
+    placement_width = 823.0
+    rotation = 0.0
+    type = "clock"
+
+        [lockscreen_widgets.widget."lockscreen-date@HDMI-A-1".settings]
+        background = false
+        center_text = true
+        clock_style = "digital"
+        color = "#FFFFFF"
+        format = "{:%A, %B %-d}"
+        shadow = true
+
+    [lockscreen_widgets.widget."lockscreen-login-box@DP-1"]
+    box_height = 70.0
+    box_width = 810.0
+    cx = 1097.0
+    cy = 980.0
+    output = "DP-1"
+    placement_height = 1234.0
+    placement_width = 2194.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@DP-1".settings]
+        background_color = "surface"
+        background_opacity = 0.12
+        background_radius = 16.0
+        center_password_text = true
+        input_opacity = 0.62
+        input_radius = 12.0
+        layout = "compact"
+        show_caps_lock = true
+        show_keyboard_layout = true
+        show_login_button = false
+        show_media = false
+        show_session_buttons = false
+        show_unlock_hint = true
+        show_weather = false
+
+    [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1"]
+    box_height = 70.0
+    box_width = 791.0
+    cx = 411.5
+    cy = 1051.9998779296875
+    enabled = false
+    output = "HDMI-A-1"
+    placement_height = 1234.0
+    placement_width = 823.0
+    rotation = 0.0
+    type = "login_box"
+
+        [lockscreen_widgets.widget."lockscreen-login-box@HDMI-A-1".settings]
+        background_opacity = 0.12
+        center_password_text = false
+        layout = "compact"
+        show_caps_lock = true
+        show_keyboard_layout = false
+        show_login_button = false
+        show_media = false
+        show_session_buttons = false
+        show_unlock_hint = false
+        show_weather = false
+
+[notification]
+background_opacity = 0.84999998100101948
+layer = "overlay"
+monitors = [ "DP-1" ]
+
+[osd]
+background_opacity = 0.84999998100101948
+border = false
+monitors = [ "DP-1" ]
+orientation = "vertical"
+position = "top_left"
+position_vertical = "top_left"
+
+    [osd.kinds]
+    keyboard_layout = false
+    media = false
+
+[plugins]
+enabled = [
+    "felipeartur/ai-usagebar",
+    "hewel/overview",
+    "hewel/nosleep",
+    "noctalia/notes",
+    "hewel/secondary",
+    "oldirtty/color_picker"
+]
+
+[shell]
+card_borders = false
+font_family = "更纱黑体 SC"
+popup_borders = false
+screen_time_enabled = true
+
+    [shell.mpris]
+    blacklist = [ "Mozilla zen" ]
+
+    [shell.panel]
+    borders = false
+    transparency_mode = "glass"
+
+    [shell.screen_corners]
+    enabled = true
+    size = 24
+
+    [shell.shadow]
+    alpha = 0.39999999105930328
+    direction = "center"
+
+[theme]
+builtin = "Noctalia"
+community_palette = "ADW"
+custom_palette = "Colloid"
+mode = "light"
+source = "custom"
+
+[wallpaper]
+directory = "/home/hewel/Pictures/Wallpaper"
+fill_mode = "span"
+
+    [wallpaper.default]
+    path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
+
+    [wallpaper.last]
+    path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
+
+    [wallpaper.monitors.DP-1]
+    path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
+
+    [wallpaper.monitors.HDMI-A-1]
+    path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
+
+[widget.bluetooth]
+hide_when_no_connected_device = true
+
+[widget.launcher]
+enabled = false
+
+[widget.network]
+show_label = false
+
+[widget.notes]
+type = "noctalia/notes:notes"
+
+[widget.tray]
+drawer = true
+
+[widget.widget]
+type = "oldirtty/color_picker:widget"
+
+[widget.workspaces]
+active_pill_size = 2.3999999999999999
+change_color_on_hover = false
+empty_color = "outline"
+inactive_pill_size = 1.6000000000000001
+occupied_color = "outline"
+show_labels = false
+
+    [widget.workspaces.actions]
+    right = "exec noctalia msg panel-toggle hewel/overview:panel"

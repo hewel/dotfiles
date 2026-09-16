@@ -1,0 +1,34 @@
+# Toggle the niri secondary output from a Control Center shortcut.
+
+id = "hewel/secondary"
+name = "Secondary Display"
+version = "1.0.0"
+plugin_api = 9
+author = "hewel"
+license = "MIT"
+icon = "device-desktop-off"
+description = "Turn the secondary niri output off while gaming, then back on."
+tags = ["niri", "display", "shortcut"]
+dependencies = ["niri"]
+
+[[setting]]
+key = "output"
+type = "string"
+label_key = "settings.output.label"
+description_key = "settings.output.description"
+default = "HDMI-A-1"
+
+[[setting]]
+key = "notify"
+type = "bool"
+label_key = "settings.notify.label"
+description_key = "settings.notify.description"
+default = true
+
+[[service]]
+id = "watch"
+entry = "service.luau"
+
+[[shortcut]]
+id = "toggle"
+entry = "shortcut.luau"

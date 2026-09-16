@@ -1,0 +1,8 @@
+{
+  "ui.title": "自动休眠",
+  "ui.blocked": "已关闭（nosleep）",
+  "ui.allowed": "已开启（sleepok）",
+  "ui.hint": "切换",
+  "ui.hint_value": "右键开关",
+  "ui.agents": "Agent"
+}

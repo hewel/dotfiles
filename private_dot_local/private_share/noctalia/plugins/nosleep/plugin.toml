@@ -1,0 +1,18 @@
+id = "hewel/nosleep"
+name = "Nosleep"
+version = "1.2.0"
+plugin_api = 9
+author = "hewel"
+license = "MIT"
+icon = "zzz-off"
+description = "Toggle nosleep/sleepok on the bar. Turns nosleep on while an agent is working."
+tags = ["power", "bar"]
+dependencies = ["fish"]
+
+[[service]]
+id = "watch"
+entry = "service.luau"
+
+[[widget]]
+id = "bar"
+entry = "bar.luau"

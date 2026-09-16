@@ -1,0 +1,32 @@
+# Workspace + window preview for scrolling/tiling WMs (niri first).
+# Vertical bar: compact indicators + popover ribbon.
+# Horizontal bar: height-driven inline viewport cards.
+
+id = "hewel/overview"
+name = "WM Overview"
+version = "1.0.0"
+plugin_api = 9
+author = "hewel"
+license = "MIT"
+icon = "layout-board"
+description = "Live niri workspace ribbons in a popover panel. No bar preview."
+tags = ["niri", "workspaces", "overview"]
+dependencies = ["niri"]
+
+[[service]]
+id = "watch"
+entry = "service.luau"
+
+[[panel]]
+id = "panel"
+entry = "panel.luau"
+width = 440
+height = 560
+placement = "attached"
+position = "auto"
+open_near_click = true
+dismiss_on_outside_click = true
+
+[[shortcut]]
+id = "toggle"
+entry = "shortcut.luau"

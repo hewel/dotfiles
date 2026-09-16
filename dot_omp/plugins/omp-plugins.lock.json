@@ -1,0 +1,10 @@
+{
+  "plugins": {
+    "@qoder-ai/better-harness": {
+      "version": "0.6.6",
+      "enabledFeatures": null,
+      "enabled": true
+    }
+  },
+  "settings": {}
+}

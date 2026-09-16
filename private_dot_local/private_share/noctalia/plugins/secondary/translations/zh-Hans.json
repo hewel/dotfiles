@@ -1,0 +1,17 @@
+{
+  "settings.output.label": "副屏输出",
+  "settings.output.description": "要开关的 niri 接口名，例如 HDMI-A-1。",
+  "settings.notify.label": "切换时通知",
+  "settings.notify.description": "关闭或打开副屏时弹出通知。",
+  "ui.title": "副屏",
+  "ui.on": "副屏",
+  "ui.off": "副屏已关",
+  "ui.missing": "未连接",
+  "ui.unavailable": "niri 不可用",
+  "ui.notify_off": "副屏已关闭",
+  "ui.notify_on": "副屏已打开",
+  "ui.err_missing": "副屏未连接。",
+  "ui.err_last": "这是当前唯一开启的屏幕，不能关掉。",
+  "ui.err_niri": "找不到 niri。",
+  "ui.err_failed": "无法切换副屏。"
+}

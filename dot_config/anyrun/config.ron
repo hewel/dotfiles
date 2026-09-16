@@ -7,10 +7,11 @@ Config(
   x: Fraction(0.5),
 
   // The vertical position, works the same as `x`
-  y: Absolute(2),
+  // Raycast sits in the upper third, not glued to the top edge
+  y: Fraction(0.20),
 
   // The width of the runner
-  width: Absolute(800),
+  width: Absolute(720),
 
   // The minimum height of the runner, the runner will expand to fit all the entries
   // NOTE: If this is set to 0, the window will never shrink after being expanded
@@ -26,7 +27,7 @@ Config(
   layer: Overlay, 
   
   // Hide the plugin info panel
-  hide_plugin_info: false, 
+  hide_plugin_info: true, 
 
   // Close window when a click outside the main box is received
   close_on_click: false,
@@ -35,7 +36,7 @@ Config(
   show_results_immediately: false,
 
   // Limit amount of entries shown in total
-  max_entries: None,
+  max_entries: Some(9),
   
   // List of plugins to be loaded by default, can be specified with a relative path to be loaded from the
   // `<anyrun config dir>/plugins` directory or with an absolute path to just load the file the path points to.
@@ -47,7 +48,7 @@ Config(
     // "libsymbols.so",
     "libshell.so",
     "libtranslate.so",
-    "libniri_focus.soi",
+    "libniri_focus.so",
     "libkidex.so"
   ],
 

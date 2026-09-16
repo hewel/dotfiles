@@ -4,8 +4,8 @@ font-family = Lilex
 
 # Window Configuration
 window-inherit-working-directory = false
-gtk-titlebar = true
-gtk-titlebar-style = tabs
+gtk-titlebar = false
+gtk-titlebar-style = native
 window-padding-x = 12
 window-padding-y = 12
 background-opacity = 0.875

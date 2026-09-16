@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "codegraph": {
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
+    },
+    "reicon": {
+      "command": "npx",
+      "args": ["-y", "reicon-mcp"]
+    },
+    "paper": {
+      "serverUrl": "http://127.0.0.1:29979/mcp"
+    },
+    "navlin": {
+      "serverUrl": "https://data.navlin.com/mcp-server"
+    }
+  }
+}

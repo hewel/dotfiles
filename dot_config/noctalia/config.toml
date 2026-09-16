@@ -35,24 +35,23 @@ directory = "/home/hewel/Pictures/Wallpaper"
     path = "/home/hewel/Pictures/Wallpaper/wallhaven-kxd1md.jpg"
 
 [idle]
-# Stasis owns idle timing, DPMS, lock, and suspend.
-# Keep Noctalia lockscreen/session actions; disable idle behaviors.
-behavior_order = ["screen-off", "lock", "lock-and-suspend"]
-
-    [idle.behavior.screen-off]
-    action = "screen_off"
-    enabled = false
-    timeout = 0.0
+behavior_order = ["lock", "screen-off", "lock-and-suspend"]
+pre_action_fade_seconds = 2.0
 
     [idle.behavior.lock]
     action = "lock"
-    enabled = false
-    timeout = 0.0
+    enabled = true
+    timeout = 300.0
+
+    [idle.behavior.screen-off]
+    action = "screen_off"
+    enabled = true
+    timeout = 360.0
 
     [idle.behavior.lock-and-suspend]
     action = "lock_and_suspend"
-    enabled = false
-    timeout = 0.0
+    enabled = true
+    timeout = 900.0
 
 [bar.default]
 enabled = true
@@ -63,7 +62,7 @@ radius_bottom_left = 0
 radius_top_right = 16
 radius_bottom_right = 16
 start = ["launcher", "workspaces", "active_window"]
-center = ["media", "clock", "stasis"]
+center = ["media", "center-gap-1", "clock", "center-gap-2"]
 end = [
     "tray",
     "clipboard",
@@ -73,11 +72,21 @@ end = [
     "notifications",
     "battery",
     "control-center",
+    "nosleep",
     "session",
 ]
 
-[widget.stasis]
-type = "hewel/stasis:bar"
+[widget.nosleep]
+type = "hewel/nosleep:bar"
+
+# Extra breathing room between the center-lane widgets only.
+[widget.center-gap-1]
+type = "spacer"
+length = 16
+
+[widget.center-gap-2]
+type = "spacer"
+length = 16
 
 # GNOME-like lock screen: clock/date on both outputs, compact auth on DP-1 only.
 [lockscreen_widgets]
@@ -210,3 +219,22 @@ widget_order = [
         show_unlock_hint = false
         show_caps_lock = true
         show_keyboard_layout = false
+
+# Default Control Center tiles, with secondary-display replacing power_profile.
+[[control_center.shortcuts]]
+type = "hewel/secondary:toggle"
+
+[[control_center.shortcuts]]
+type = "wifi"
+
+[[control_center.shortcuts]]
+type = "bluetooth"
+
+[[control_center.shortcuts]]
+type = "caffeine"
+
+[[control_center.shortcuts]]
+type = "nightlight"
+
+[[control_center.shortcuts]]
+type = "notification"

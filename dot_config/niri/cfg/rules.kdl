@@ -1,10 +1,7 @@
-window-rule {
-    geometry-corner-radius 12
-    clip-to-geometry true
-}
+// Window and layer rules.
+// Global radius / clip / tiled-state live in layout.kdl.
 
-// Chrome Wayland notification toasts: empty app_id + title, steal focus as tiled columns.
-// See: niri event-stream WindowOpenedOrChanged with pid=chrome, size ~360x142.
+// Chrome Wayland notification toasts: empty app_id + title.
 window-rule {
     match app-id="^$" title="^$"
     open-floating true
@@ -17,13 +14,16 @@ layer-rule {
     place-within-backdrop true
 }
 
-// Raycast-style anyrun: dark HUD, rounded shadow. Keep the
-// surface tight (close_on_click off) so blur does not cover the screen.
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+
 layer-rule {
     match namespace="^anyrun$"
-
     geometry-corner-radius 16
-
     shadow {
         on
         softness 40
@@ -31,10 +31,142 @@ layer-rule {
         offset x=0 y=16
         color "#00000066"
     }
-
     background-effect {
         blur true
         xray false
         noise 0.02
+    }
+}
+
+window-rule {
+    match app-id="^com.mitchellh.ghostty$"
+    match app-id="^Alacritty$"
+    match app-id="^foot$"
+    match app-id="^org.gnome.Console$"
+    default-column-width { fixed 1505; }
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="^zen$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^helium$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^org.gnome.NautilusPreviewer$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^antigravity$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^XEyes$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^libreoffice-calc$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^code$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^mpv$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^dev.zed.Zed$"
+    open-maximized true
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="^steam$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^Google-chrome$"
+    match app-id="^google-chrome$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^gitkraken$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^Aseprite$"
+    open-maximized true
+}
+
+window-rule {
+    match app-id="^com.gabm.satty$"
+    open-floating true
+}
+
+window-rule {
+    match app-id="^steam_app_3596700$"
+    open-fullscreen true
+}
+
+window-rule {
+    match app-id="^steam_app_\\d+$"
+    open-fullscreen true
+}
+
+window-rule {
+    match app-id="^nwg-look$"
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="^moe.tsuna.tsukimi$"
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="^app.liten.Gram$"
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating true
+    default-column-width { fixed 1080; }
+    default-window-height { fixed 920; }
+    border {
+        off
+    }
+    focus-ring {
+        off
+    }
+    background-effect {
+        blur true
+        xray false
     }
 }

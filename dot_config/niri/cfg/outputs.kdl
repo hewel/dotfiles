@@ -1,0 +1,25 @@
+// Machine-specific. Connector names from `niri msg outputs`.
+// This file is the desktop (cachyos-power-pc) layout. A laptop must replace
+// DP-1 / HDMI-A-1 with its own connectors or niri will ignore these blocks.
+
+output "DP-1" {
+    mode "3840x2160@60.000"
+    scale 1.75
+    position x=0 y=0
+    focus-at-startup
+    // Top-left fights the bar; bottom-right is the one-handed overview toggle.
+    hot-corners {
+        bottom-right
+    }
+}
+
+output "HDMI-A-1" {
+    mode "2160x1440@59.996"
+    scale 1.75
+    transform "270"
+    position x=2194 y=0
+    hot-corners {
+        top-right
+        bottom-right
+    }
+}

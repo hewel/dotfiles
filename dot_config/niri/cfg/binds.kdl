@@ -1,5 +1,5 @@
 binds {
-    // ─── Noctalia v5 IPC (migrated from DMS / noctalia-shell v4) ───
+    // ─── Noctalia ───
     Super+D hotkey-overlay-title="Launcher: Noctalia" { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+S hotkey-overlay-title="Control Center: Noctalia" { spawn-sh "noctalia msg panel-toggle control-center"; }
     Mod+Comma hotkey-overlay-title="Settings: Noctalia" { spawn-sh "noctalia msg settings-toggle"; }
@@ -20,10 +20,7 @@ binds {
     XF86MonBrightnessUp allow-when-locked=true { spawn-sh "noctalia msg brightness-up"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn-sh "noctalia msg brightness-down"; }
 
-    // Unmapped DMS plugin (no Noctalia equivalent): dankTranslateAI translateSelection
-    // Previous bind: Mod+Shift+T -> dms ipc call dankTranslateAI translateSelection
-
-    // ─── Applications (preserved from the previously effective dms/binds.kdl) ───
+    // ─── Applications ───
     Mod+T hotkey-overlay-title="Open Terminal: Ghostty" { spawn "ghostty"; }
     Mod+B hotkey-overlay-title="Open Browser: zen-browser" { spawn "zen-browser"; }
     Mod+E hotkey-overlay-title="File Manager: Nautilus" { spawn "nautilus"; }
@@ -54,7 +51,8 @@ binds {
     Super+Shift+8 { move-column-to-workspace 8; }
     Super+Shift+9 { move-column-to-workspace 9; }
 
-    // ─── Screenshots (niri built-in; Print region+satty lives in config.kdl) ───
+    // ─── Screenshots ───
+    Print { spawn-sh "grim -t ppm -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --actions-on-enter \"save-to-clipboard,exit\" --actions-on-escape \"exit\""; }
     CTRL+Shift+1 { screenshot; }
     CTRL+Shift+2 { screenshot-screen; }
     CTRL+Shift+3 { screenshot-window; }
@@ -108,9 +106,11 @@ binds {
     Mod+WheelScrollRight { focus-column-right; }
     Mod+WheelScrollUp cooldown-ms=150 { focus-column-left; }
     Super+M hotkey-overlay-title="Maximize Column" { maximize-column; }
+    Mod+X repeat=false { toggle-overview; }
+
+    // ─── Session ───
     Mod+Shift+P { power-off-monitors; }
     CTRL+ALT+Delete { quit; }
     Mod+ESCAPE allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+ESCAPE { show-hotkey-overlay; }
-    Mod+X repeat=false { toggle-overview; }
 }
